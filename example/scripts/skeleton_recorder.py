@@ -136,9 +136,17 @@ def main():
                 break
 
             # Adecuación del espacio de color (OpenCV usa BGR, MediaPipe exige RGB)
-            rgb      = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+rgb      = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
-            result   = detector.detect_for_video(mp_image, frame_idx)
+            
+            # Obtener el timestamp real en milisegundos
+            timestamp_ms = int(cap.get(cv2.CAP_PROP_POS_MSEC))
+            
+            # Evitar error si el timestamp es 0 o repetido en el primer frame
+            if timestamp_ms <= 0 and frame_idx > 0:
+                timestamp_ms = int((frame_idx / FPS) * 1000)
+
+            result = detector.detect_for_video(mp_image, timestamp_ms)
             frame_idx += 1
 
             if result.pose_landmarks:
